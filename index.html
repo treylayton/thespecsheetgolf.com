@@ -455,6 +455,60 @@
             border-top: 1px solid var(--card-border);
         }
 
+        /* Screenshot Carousel */
+        .screenshot-carousel {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            margin: 0 -24px;
+            padding: 0 24px;
+        }
+
+        .screenshot-carousel::-webkit-scrollbar { display: none; }
+
+        .screenshot-track {
+            display: flex;
+            gap: 24px;
+            padding: 20px 0 32px;
+            width: max-content;
+        }
+
+        .screenshot-slide {
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .phone-frame {
+            width: 240px;
+            height: 520px;
+            border-radius: 32px;
+            overflow: hidden;
+            border: 3px solid var(--card-border);
+            background: var(--bg);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(201, 168, 76, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .phone-frame:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(201, 168, 76, 0.12);
+            border-color: var(--gold);
+        }
+
+        .phone-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+        }
+
+        .screenshot-caption {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
         /* Scroll reveal animations */
         .reveal {
             opacity: 0;
@@ -586,6 +640,54 @@
                 <div class="feature-icon">&#x1f4d6;</div>
                 <h3>Manufacturer Database</h3>
                 <p>120+ spec sets, 784 clubs, 80 shafts, 19 brands built in. Select your club and the reference data is already there.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- App Screenshots -->
+<section class="features" id="screenshots">
+    <div class="container">
+        <h2>See Your Bag Like Never Before.</h2>
+        <p class="section-sub">Real data. Real analysis. Every screen built for the gear-obsessed.</p>
+        <div class="screenshot-carousel">
+            <div class="screenshot-track">
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/setdna.png" alt="Set DNA — shaft weight and swingweight coherence" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Set DNA</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/yardage.png" alt="Yardage Ruler — distance coverage map" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Yardage Ruler</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/moi.png" alt="MOI Estimator — swingweight matching analysis" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">MOI Estimator</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/gapping.png" alt="Gapping Optimizer — distance gap analysis" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Gapping Optimizer</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/wedge.png" alt="Wedge Matrix — bounce and grind map" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Wedge Matrix</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/intelligence.png" alt="Intelligence Hub — 16 fitting tools" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Intelligence Hub</p>
+                </div>
             </div>
         </div>
     </div>
