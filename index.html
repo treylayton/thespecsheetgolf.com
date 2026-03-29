@@ -33,7 +33,21 @@
             color: var(--text);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
+
+        /* Animated background canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        nav, section, footer { position: relative; z-index: 1; }
 
         .container {
             max-width: 1100px;
@@ -441,6 +455,53 @@
             border-top: 1px solid var(--card-border);
         }
 
+        /* Scroll reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card, .intel-card, .audience-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card.visible, .intel-card.visible, .audience-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero shimmer on the gold text */
+        .hero h1 .gold {
+            background: linear-gradient(90deg, var(--gold) 0%, #e8d48b 50%, var(--gold) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        /* Stat counter pulse */
+        .stat-number {
+            animation: countPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes countPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .nav-links { display: none; }
@@ -645,11 +706,45 @@
     </div>
 </section>
 
+<!-- Pricing -->
+<section class="features" id="pricing">
+    <div class="container">
+        <h2>Less Than a Sleeve of Pro V1s.</h2>
+        <p class="section-sub">Full fitting intelligence for $29.99/year.</p>
+        <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); max-width: 700px; margin: 0 auto;">
+            <div class="feature-card" style="border-color: var(--card-border);">
+                <h3 style="color: var(--text-secondary);">Free</h3>
+                <p style="font-size: 32px; font-weight: 900; color: var(--text); margin: 12px 0;">$0</p>
+                <p style="margin-bottom: 16px;">Try before you commit</p>
+                <ul style="list-style: none; text-align: left;">
+                    <li style="padding: 6px 0; color: var(--text-secondary); font-size: 14px;">&#10003;&ensp;Basic bag entry</li>
+                    <li style="padding: 6px 0; color: var(--text-secondary); font-size: 14px;">&#10003;&ensp;Club specs tracking</li>
+                    <li style="padding: 6px 0; color: var(--text-secondary); font-size: 14px;">&#10003;&ensp;Manufacturer lookup</li>
+                    <li style="padding: 6px 0; color: var(--text-secondary); font-size: 14px;">&#10003;&ensp;7-day full trial</li>
+                </ul>
+            </div>
+            <div class="feature-card" style="border-color: var(--gold);">
+                <h3 style="color: var(--gold);">Pro</h3>
+                <p style="font-size: 32px; font-weight: 900; color: var(--gold); margin: 12px 0;">$29.99<span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">/year</span></p>
+                <p style="margin-bottom: 16px;">The cost of a single fitting tip</p>
+                <ul style="list-style: none; text-align: left;">
+                    <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;All 16 intelligence tools</li>
+                    <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;Full manufacturer database</li>
+                    <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;PDF, WITB, yardage exports</li>
+                    <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;Shaft &amp; grip libraries</li>
+                    <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;What-If simulator</li>
+                    <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;Unlimited clubs &amp; bags</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Final CTA -->
 <section class="final-cta" id="download">
     <div class="container">
         <h2>Your Bag Has a Story. Start Reading It.</h2>
-        <p>Free to download. Full spec tracking included. Intelligence features unlock with Pro.</p>
+        <p>A $350 fitting is a snapshot. The Spec Sheet is continuous intelligence for $29.99/year.</p>
         <a href="#" class="hero-cta">Coming Soon to the App Store</a>
     </div>
 </section>
@@ -674,6 +769,235 @@
         <p class="footer-bottom">&copy; 2026 Centrifical Apps. All rights reserved.</p>
     </div>
 </footer>
+
+<!-- Animated Background -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Scroll Reveal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add reveal class to sections
+    document.querySelectorAll('.problem, .features, .stats, .intelligence, .audience, .final-cta').forEach(el => {
+        el.classList.add('reveal');
+    });
+
+    // Staggered reveal for cards
+    function staggerCards(selector) {
+        document.querySelectorAll(selector).forEach((card, i) => {
+            card.style.transitionDelay = (i * 0.08) + 's';
+        });
+    }
+    staggerCards('.feature-card');
+    staggerCards('.intel-card');
+    staggerCards('.audience-card');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                // Also reveal child cards
+                entry.target.querySelectorAll('.feature-card, .intel-card, .audience-card').forEach(card => {
+                    card.classList.add('visible');
+                });
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal, .feature-card, .intel-card, .audience-card').forEach(el => {
+        observer.observe(el);
+    });
+});
+</script>
+
+<script>
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles, connections;
+    const gold = { r: 201, g: 168, b: 76 };
+    const maxParticles = 120;
+    const connectionDist = 220;
+    let mouse = { x: -1000, y: -1000 };
+    let animFrame;
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight * 3; // Cover full scroll
+    }
+
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < maxParticles; i++) {
+            particles.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.4,
+                size: Math.random() * 2.5 + 0.8,
+                opacity: Math.random() * 0.5 + 0.1,
+                pulse: Math.random() * Math.PI * 2,
+                pulseSpeed: Math.random() * 0.01 + 0.005
+            });
+        }
+    }
+
+    function drawParticle(p) {
+        const pulse = Math.sin(p.pulse) * 0.15 + 0.85;
+        const alpha = p.opacity * pulse;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+        ctx.fill();
+
+        // Subtle glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 3 * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.15})`;
+        ctx.fill();
+    }
+
+    function drawConnections() {
+        const scrollY = window.scrollY;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < connectionDist) {
+                    const alpha = (1 - dist / connectionDist) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function update() {
+        const scrollY = window.scrollY;
+
+        for (let p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.pulse += p.pulseSpeed;
+
+            // Soft boundary wrapping
+            if (p.x < -20) p.x = w + 20;
+            if (p.x > w + 20) p.x = -20;
+            if (p.y < -20) p.y = h + 20;
+            if (p.y > h + 20) p.y = -20;
+
+            // Subtle mouse repulsion (viewport-relative)
+            const mx = mouse.x;
+            const my = mouse.y + scrollY;
+            const dx = p.x - mx;
+            const dy = p.y - my;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 200 && dist > 0) {
+                const force = (200 - dist) / 200 * 0.3;
+                p.vx += (dx / dist) * force;
+                p.vy += (dy / dist) * force;
+            }
+
+            // Dampen velocity
+            p.vx *= 0.99;
+            p.vy *= 0.99;
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Translate canvas based on scroll to create parallax
+        const scrollY = window.scrollY;
+        ctx.save();
+        ctx.translate(0, -scrollY * 0.3);
+
+        drawConnections();
+        for (let p of particles) {
+            drawParticle(p);
+        }
+
+        // Gradient orbs for depth — larger, brighter
+        drawOrb(w * 0.15, h * 0.08, 450, 0.06);
+        drawOrb(w * 0.85, h * 0.2, 380, 0.05);
+        drawOrb(w * 0.5, h * 0.45, 500, 0.04);
+        drawOrb(w * 0.2, h * 0.65, 350, 0.05);
+        drawOrb(w * 0.75, h * 0.8, 400, 0.04);
+
+        // Mouse interaction visuals
+        if (mouse.x > 0 && mouse.y > 0) {
+            const mx = mouse.x;
+            const my = mouse.y + scrollY * 0.7;
+            const mouseRadius = 200;
+
+            // Glow around cursor
+            const cursorGlow = ctx.createRadialGradient(mx, my, 0, mx, my, mouseRadius);
+            cursorGlow.addColorStop(0, `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.08)`);
+            cursorGlow.addColorStop(0.5, `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.03)`);
+            cursorGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.beginPath();
+            ctx.arc(mx, my, mouseRadius, 0, Math.PI * 2);
+            ctx.fillStyle = cursorGlow;
+            ctx.fill();
+
+            // Draw lines from cursor to nearby particles
+            for (let p of particles) {
+                const dx = p.x - mx;
+                const dy = p.y - my;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < mouseRadius) {
+                    const alpha = (1 - dist / mouseRadius) * 0.35;
+                    ctx.beginPath();
+                    ctx.moveTo(mx, my);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+                    ctx.lineWidth = (1 - dist / mouseRadius) * 1.5;
+                    ctx.stroke();
+
+                    // Brighten particles near cursor
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.5})`;
+                    ctx.fill();
+                }
+            }
+
+            // Small bright dot at cursor position
+            ctx.beginPath();
+            ctx.arc(mx, my, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.6)`;
+            ctx.fill();
+        }
+
+        ctx.restore();
+
+        update();
+        animFrame = requestAnimationFrame(render);
+    }
+
+    function drawOrb(x, y, radius, alpha) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+    }
+
+    window.addEventListener('resize', () => { resize(); });
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; });
+
+    resize();
+    createParticles();
+    render();
+})();
+</script>
 
 </body>
 </html>
