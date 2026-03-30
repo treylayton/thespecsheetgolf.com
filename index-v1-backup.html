@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Spec Sheet — Tour-Level Specs for Every Golfer</title>
+    <meta name="description" content="Document, analyze, and optimize every club in your bag. The only app that treats your equipment like a tour rep would.">
+    <meta name="keywords" content="golf, club fitting, spec sheet, loft, lie, shaft, swingweight, gapping, equipment tracking">
+    <meta property="og:title" content="The Spec Sheet — The Tour Truck in Your Pocket">
+    <meta property="og:description" content="Document, analyze, and optimize every club in your bag. Tour-level specs for every golfer.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://thespecsheetgolf.com">
+    <link rel="icon" type="image/png" href="icon.png">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card: #16161e;
+            --card-border: #2a2a35;
+            --gold: #c9a84c;
+            --gold-light: #d4b96a;
+            --text: #ffffff;
+            --text-secondary: #8890a0;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Animated background canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        nav, section, footer { position: relative; z-index: 1; }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-brand img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .nav-brand span {
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--gold); }
+
+        .nav-cta {
+            background: var(--gold);
+            color: #000;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .nav-cta:hover { opacity: 0.85; }
+
+        /* Hero */
+        .hero {
+            padding: 160px 0 100px;
+            text-align: center;
+        }
+
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            margin: 0 auto 32px;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .hero h1 .gold { color: var(--gold); }
+
+        .hero .tagline {
+            font-size: clamp(16px, 2.5vw, 22px);
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .hero .subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--gold);
+            color: #000;
+            padding: 14px 36px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 16px;
+            text-decoration: none;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .hero-cta:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .gold-line {
+            width: 120px;
+            height: 2px;
+            background: var(--gold);
+            margin: 0 auto 20px;
+        }
+
+        /* Problem Section */
+        .problem {
+            padding: 80px 0;
+        }
+
+        .problem h2 {
+            font-size: 32px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .problem p {
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 17px;
+            line-height: 1.8;
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 0;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .features .section-sub {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 16px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            margin-bottom: 14px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* Stats */
+        .stats {
+            padding: 60px 0;
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--gold);
+            font-family: 'SF Mono', 'Menlo', monospace;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* Intelligence */
+        .intelligence {
+            padding: 80px 0;
+        }
+
+        .intelligence h2 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .intelligence .section-sub {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 16px;
+        }
+
+        .intel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .intel-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .intel-card .intel-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .intel-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .intel-card p {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* Audience */
+        .audience {
+            padding: 80px 0;
+        }
+
+        .audience h2 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 48px;
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .audience-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .audience-card h3 {
+            color: var(--gold);
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .audience-card p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* CTA Section */
+        .final-cta {
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .final-cta p {
+            color: var(--text-secondary);
+            font-size: 17px;
+            margin-bottom: 32px;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--card-border);
+            padding: 48px 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 32px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .footer-brand img {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+        }
+
+        .footer-brand span {
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .footer-tagline {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover { color: var(--gold); }
+
+        .footer-bottom {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        /* Screenshot Carousel */
+        .screenshot-carousel {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            margin: 0 -24px;
+            padding: 0 24px;
+        }
+
+        .screenshot-carousel::-webkit-scrollbar { display: none; }
+
+        .screenshot-track {
+            display: flex;
+            gap: 24px;
+            padding: 20px 0 32px;
+            width: max-content;
+        }
+
+        .screenshot-slide {
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .phone-frame {
+            width: 240px;
+            height: 520px;
+            border-radius: 32px;
+            overflow: hidden;
+            border: 3px solid var(--card-border);
+            background: var(--bg);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(201, 168, 76, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .phone-frame:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(201, 168, 76, 0.12);
+            border-color: var(--gold);
+        }
+
+        .phone-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+        }
+
+        .screenshot-caption {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Scroll reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card, .intel-card, .audience-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card.visible, .intel-card.visible, .audience-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero shimmer on the gold text */
+        .hero h1 .gold {
+            background: linear-gradient(90deg, var(--gold) 0%, #e8d48b 50%, var(--gold) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        /* Stat counter pulse */
+        .stat-number {
+            animation: countPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes countPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .feature-grid { grid-template-columns: 1fr; }
+            .footer-content { flex-direction: column; }
+            .hero { padding: 120px 0 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+    <div class="container">
+        <a href="#" class="nav-brand">
+            <img src="icon.png" alt="The Spec Sheet">
+            <span>THE SPEC SHEET</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#intelligence">Intelligence</a></li>
+            <li><a href="#who">Who It's For</a></li>
+            <li><a href="mailto:support@thespecsheetgolf.com">Contact</a></li>
+        </ul>
+        <a href="#download" class="nav-cta">Download Free</a>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <img src="icon.png" alt="The Spec Sheet" class="hero-icon">
+        <h1>The <span class="gold">Tour Truck</span> in Your Pocket.</h1>
+        <p class="tagline">Tour-level specs for every golfer.</p>
+        <div class="gold-line"></div>
+        <p class="subtitle">Document, analyze, and optimize every club in your bag. The only app that treats your equipment like a tour rep would.</p>
+        <a href="#download" class="hero-cta">Download on the App Store</a>
+    </div>
+</section>
+
+<!-- Problem -->
+<section class="problem">
+    <div class="container">
+        <h2>Your bag is a collection, not a system.</h2>
+        <p>You spent $400 on a fitting. You bought the clubs. But do you actually know your specs? Most golfers can't tell you their driver's swingweight, their 7-iron's actual loft, or whether their wedge gapping has a 15-yard hole in it. Your fitter knew. Your tour rep would know. Now you will too.</p>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+    <div class="container">
+        <h2>Every Spec. Every Club. Always Dialed.</h2>
+        <p class="section-sub">The fitting session ends. The Spec Sheet begins.</p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#x1f4cb;</div>
+                <h3>Complete Spec Tracking</h3>
+                <p>Document every spec from loft and lie to shaft CPM, swingweight, grip model, and head weight. More fields than any fitting studio's build sheet.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#x1f4ca;</div>
+                <h3>Gap Analysis</h3>
+                <p>See your gapping in one glance. Spot yardage deserts and redundant clubs before they cost you strokes. Context-aware thresholds from driver through lob wedge.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#x1f50d;</div>
+                <h3>OEM vs. Measured</h3>
+                <p>Compare manufacturer specs against your actual measured values, side by side. Know what you actually have, not what the box said.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#x1f6e0;</div>
+                <h3>What-If Simulator</h3>
+                <p>Dial loft on any club and watch your carry distances shift in real time. Fill yardage gaps before committing to a bend.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#x1f4f1;</div>
+                <h3>Export Everything</h3>
+                <p>PDF spec sheets, WITB cards, yardage cards, CSV exports, and email-to-fitter. Professional reports with your data, ready to share.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#x1f4d6;</div>
+                <h3>Manufacturer Database</h3>
+                <p>120+ spec sets, 784 clubs, 80 shafts, 19 brands built in. Select your club and the reference data is already there.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- App Screenshots -->
+<section class="features" id="screenshots">
+    <div class="container">
+        <h2>See Your Bag Like Never Before.</h2>
+        <p class="section-sub">Real data. Real analysis. Every screen built for the gear-obsessed.</p>
+        <div class="screenshot-carousel">
+            <div class="screenshot-track">
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/setdna.png" alt="Set DNA — shaft weight and swingweight coherence" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Set DNA</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/yardage.png" alt="Yardage Ruler — distance coverage map" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Yardage Ruler</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/moi.png" alt="MOI Estimator — swingweight matching analysis" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">MOI Estimator</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/gapping.png" alt="Gapping Optimizer — distance gap analysis" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Gapping Optimizer</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/wedge.png" alt="Wedge Matrix — bounce and grind map" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Wedge Matrix</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/intelligence.png" alt="Intelligence Hub — 16 fitting tools" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Intelligence Hub</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div>
+                <div class="stat-number">784</div>
+                <div class="stat-label">Club Specs</div>
+            </div>
+            <div>
+                <div class="stat-number">80+</div>
+                <div class="stat-label">Shaft Models</div>
+            </div>
+            <div>
+                <div class="stat-number">19</div>
+                <div class="stat-label">Brands</div>
+            </div>
+            <div>
+                <div class="stat-number">16</div>
+                <div class="stat-label">Intelligence Tools</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Intelligence -->
+<section class="intelligence" id="intelligence">
+    <div class="container">
+        <h2>Fitting Intelligence, Not Just Storage.</h2>
+        <p class="section-sub">16 analytical tools that see your bag the way a builder sees it.</p>
+        <div class="intel-grid">
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f9e0;</div>
+                <h4>Bag Intelligence</h4>
+                <p>Equipment coherence across 5 dimensions</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f4c8;</div>
+                <h4>Gapping Optimizer</h4>
+                <p>Context-aware distance gap analysis</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f39b;</div>
+                <h4>What-If Simulator</h4>
+                <p>Live carry chart with per-club loft dials</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f9ec;</div>
+                <h4>Set DNA</h4>
+                <p>Shaft weight and swingweight coherence</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f4cf;</div>
+                <h4>Yardage Ruler</h4>
+                <p>Distance coverage map with gap detection</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f4d0;</div>
+                <h4>Lie Progression</h4>
+                <p>Detects Gears, Traditional, or MOI philosophy</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f3af;</div>
+                <h4>Wedge Matrix</h4>
+                <p>Bounce and grind map across your setup</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x2696;</div>
+                <h4>MOI Estimator</h4>
+                <p>Per-category swingweight matching analysis</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f50e;</div>
+                <h4>Spec Audit</h4>
+                <p>Stated vs. measured spec verification</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f3cb;</div>
+                <h4>Weight Cascade</h4>
+                <p>Head + shaft + grip breakdown per club</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x2b50;</div>
+                <h4>Club Baseline</h4>
+                <p>Compare every club to your favorite</p>
+            </div>
+            <div class="intel-card">
+                <div class="intel-icon">&#x1f4c5;</div>
+                <h4>Spec Timeline</h4>
+                <p>History of bends, reshafts, and checks</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Audience -->
+<section class="audience" id="who">
+    <div class="container">
+        <h2>Built for Golfers Who Care About the Details.</h2>
+        <div class="audience-grid">
+            <div class="audience-card">
+                <h3>The Fitted Golfer</h3>
+                <p>You spent serious money on a fitting. Now you have a permanent digital record of every spec, with intelligence that tells you when something drifts or needs attention. Your fitting investment, protected.</p>
+            </div>
+            <div class="audience-card">
+                <h3>The Gear Nerd</h3>
+                <p>You know your shaft weight matters more than the brand name on the head. You've built spreadsheets to track your specs. Now there's an app that speaks your language — CPM, MOI, frequency slope, and all.</p>
+            </div>
+            <div class="audience-card">
+                <h3>The Club Builder</h3>
+                <p>Whether you build in your garage or run a fitting studio, The Spec Sheet documents client builds, exports professional spec sheets, and tracks every adjustment. The build sheet you always wanted.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section class="features" id="pricing">
+    <div class="container">
+        <h2>Less Than a Sleeve of Pro V1s.</h2>
+        <p class="section-sub">7-day free trial. Then $29.99/year for everything.</p>
+        <div style="max-width: 420px; margin: 0 auto;">
+            <div class="feature-card" style="border-color: var(--gold); text-align: center;">
+                <p style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px;">7-Day Free Trial</p>
+                <p style="font-size: 42px; font-weight: 900; color: var(--gold); margin: 8px 0;">$29.99<span style="font-size: 16px; color: var(--text-secondary); font-weight: 500;">/year</span></p>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Full access from day one. Cancel anytime during trial.</p>
+                <div style="border-top: 1px solid var(--card-border); padding-top: 16px;">
+                    <ul style="list-style: none; text-align: left; max-width: 280px; margin: 0 auto;">
+                        <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;All 16 intelligence tools</li>
+                        <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;784 clubs, 80+ shafts, 42+ grips</li>
+                        <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;PDF, WITB &amp; yardage card exports</li>
+                        <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;What-If simulator</li>
+                        <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;Unlimited clubs &amp; bags</li>
+                        <li style="padding: 6px 0; color: var(--text); font-size: 14px;">&#10003;&ensp;Spec audit &amp; MOI estimation</li>
+                    </ul>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 16px;">That's $2.50/month — less than a single range bucket.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta" id="download">
+    <div class="container">
+        <h2>Your Bag Has a Story. Start Reading It.</h2>
+        <p>A $350 fitting is a snapshot. The Spec Sheet is continuous intelligence for $29.99/year. Start your free trial today.</p>
+        <a href="#" class="hero-cta">Coming Soon to the App Store</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand">
+                    <img src="icon.png" alt="The Spec Sheet">
+                    <span>THE SPEC SHEET</span>
+                </div>
+                <p class="footer-tagline">Tour-level specs for every golfer.</p>
+            </div>
+            <div class="footer-links">
+                <a href="mailto:support@thespecsheetgolf.com">support@thespecsheetgolf.com</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms</a>
+            </div>
+        </div>
+        <p class="footer-bottom">&copy; 2026 Centrifical Apps. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Animated Background -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Scroll Reveal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add reveal class to sections
+    document.querySelectorAll('.problem, .features, .stats, .intelligence, .audience, .final-cta').forEach(el => {
+        el.classList.add('reveal');
+    });
+
+    // Staggered reveal for cards
+    function staggerCards(selector) {
+        document.querySelectorAll(selector).forEach((card, i) => {
+            card.style.transitionDelay = (i * 0.08) + 's';
+        });
+    }
+    staggerCards('.feature-card');
+    staggerCards('.intel-card');
+    staggerCards('.audience-card');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                // Also reveal child cards
+                entry.target.querySelectorAll('.feature-card, .intel-card, .audience-card').forEach(card => {
+                    card.classList.add('visible');
+                });
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal, .feature-card, .intel-card, .audience-card').forEach(el => {
+        observer.observe(el);
+    });
+});
+</script>
+
+<script>
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles, connections;
+    const gold = { r: 201, g: 168, b: 76 };
+    const maxParticles = 120;
+    const connectionDist = 220;
+    let mouse = { x: -1000, y: -1000 };
+    let animFrame;
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight * 3; // Cover full scroll
+    }
+
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < maxParticles; i++) {
+            particles.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.4,
+                size: Math.random() * 2.5 + 0.8,
+                opacity: Math.random() * 0.5 + 0.1,
+                pulse: Math.random() * Math.PI * 2,
+                pulseSpeed: Math.random() * 0.01 + 0.005
+            });
+        }
+    }
+
+    function drawParticle(p) {
+        const pulse = Math.sin(p.pulse) * 0.15 + 0.85;
+        const alpha = p.opacity * pulse;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+        ctx.fill();
+
+        // Subtle glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 3 * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.15})`;
+        ctx.fill();
+    }
+
+    function drawConnections() {
+        const scrollY = window.scrollY;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < connectionDist) {
+                    const alpha = (1 - dist / connectionDist) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function update() {
+        const scrollY = window.scrollY;
+
+        for (let p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.pulse += p.pulseSpeed;
+
+            // Soft boundary wrapping
+            if (p.x < -20) p.x = w + 20;
+            if (p.x > w + 20) p.x = -20;
+            if (p.y < -20) p.y = h + 20;
+            if (p.y > h + 20) p.y = -20;
+
+            // Subtle mouse repulsion (viewport-relative)
+            const mx = mouse.x;
+            const my = mouse.y + scrollY;
+            const dx = p.x - mx;
+            const dy = p.y - my;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 200 && dist > 0) {
+                const force = (200 - dist) / 200 * 0.3;
+                p.vx += (dx / dist) * force;
+                p.vy += (dy / dist) * force;
+            }
+
+            // Dampen velocity
+            p.vx *= 0.99;
+            p.vy *= 0.99;
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Translate canvas based on scroll to create parallax
+        const scrollY = window.scrollY;
+        ctx.save();
+        ctx.translate(0, -scrollY * 0.3);
+
+        drawConnections();
+        for (let p of particles) {
+            drawParticle(p);
+        }
+
+        // Gradient orbs for depth — larger, brighter
+        drawOrb(w * 0.15, h * 0.08, 450, 0.06);
+        drawOrb(w * 0.85, h * 0.2, 380, 0.05);
+        drawOrb(w * 0.5, h * 0.45, 500, 0.04);
+        drawOrb(w * 0.2, h * 0.65, 350, 0.05);
+        drawOrb(w * 0.75, h * 0.8, 400, 0.04);
+
+        // Mouse interaction visuals
+        if (mouse.x > 0 && mouse.y > 0) {
+            const mx = mouse.x;
+            const my = mouse.y + scrollY * 0.7;
+            const mouseRadius = 200;
+
+            // Glow around cursor
+            const cursorGlow = ctx.createRadialGradient(mx, my, 0, mx, my, mouseRadius);
+            cursorGlow.addColorStop(0, `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.08)`);
+            cursorGlow.addColorStop(0.5, `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.03)`);
+            cursorGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.beginPath();
+            ctx.arc(mx, my, mouseRadius, 0, Math.PI * 2);
+            ctx.fillStyle = cursorGlow;
+            ctx.fill();
+
+            // Draw lines from cursor to nearby particles
+            for (let p of particles) {
+                const dx = p.x - mx;
+                const dy = p.y - my;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < mouseRadius) {
+                    const alpha = (1 - dist / mouseRadius) * 0.35;
+                    ctx.beginPath();
+                    ctx.moveTo(mx, my);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+                    ctx.lineWidth = (1 - dist / mouseRadius) * 1.5;
+                    ctx.stroke();
+
+                    // Brighten particles near cursor
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.5})`;
+                    ctx.fill();
+                }
+            }
+
+            // Small bright dot at cursor position
+            ctx.beginPath();
+            ctx.arc(mx, my, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.6)`;
+            ctx.fill();
+        }
+
+        ctx.restore();
+
+        update();
+        animFrame = requestAnimationFrame(render);
+    }
+
+    function drawOrb(x, y, radius, alpha) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+    }
+
+    window.addEventListener('resize', () => { resize(); });
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; });
+
+    resize();
+    createParticles();
+    render();
+})();
+</script>
+
+</body>
+</html>
