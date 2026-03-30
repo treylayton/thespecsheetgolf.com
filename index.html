@@ -51,8 +51,6 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
             z-index: 0;
             pointer-events: none;
         }
@@ -1847,249 +1845,425 @@ document.addEventListener('DOMContentLoaded', function() {
 (function() {
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
-    let w, h, nodes = [], hexCenters = [], time = 0;
-    const gold = { r: 201, g: 168, b: 76 };
-    const silver = { r: 146, g: 152, b: 168 };
+    let w, h, time = 0;
+    const dpr = window.devicePixelRatio || 1;
     let mouse = { x: -1000, y: -1000 };
 
+    // Spec terms that float like the equations on Centrifical
+    const specTerms = [
+        'SW = D2', 'CPM = 256', 'MOI = 2,750', 'Loft = 10.5\u00B0', 'Lie = 58\u00B0',
+        'Bounce = 12\u00B0', 'Spin = 2,430', 'Launch = 14.2\u00B0', 'Smash = 1.48',
+        'CG = 28mm', 'Shaft = 65g', 'Grip = 50g', 'Length = 45.5"', 'Face = 1.7\u00B0 open',
+        'Carry = 285', 'Total = 302', 'Ball Speed = 167', 'Club Speed = 113',
+        'Flex = 6.0', 'Torque = 3.2\u00B0', 'Kick = Mid', 'Tip Trim = 1.5"',
+        'Effective Loft = 12.8\u00B0', 'Attack = -1.2\u00B0', 'Path = 2.1\u00B0 in-out',
+        'D-Plane', 'Gear Effect', 'VCG = low', 'CT = 234 \u00B5s',
+        'Gap = 12 yds', 'Freq Match', '\u0394SW = 0.3', 'Bulge = 10"', 'Roll = 12"',
+        'AoA = -3.5\u00B0', 'Spin Axis = -2.1\u00B0', 'Spin Loft = 15.4\u00B0',
+        'Dynamic Loft = 13.8\u00B0', 'Closure Rate = 4.2\u00B0/s'
+    ];
+
+    let floatingTerms = [];
+    let orbs = [];
+    let stars = [];
+
     function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight * 3;
-        buildGrid();
+        w = window.innerWidth;
+        h = window.innerHeight * 3;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        init();
     }
 
-    // Build a hex grid of nodes across the full canvas
-    function buildGrid() {
-        nodes = [];
-        hexCenters = [];
-        const spacing = 90;
-        const rowH = spacing * Math.sqrt(3) / 2;
-        const cols = Math.ceil(w / spacing) + 2;
-        const rows = Math.ceil(h / rowH) + 2;
-
-        for (let row = -1; row < rows; row++) {
-            for (let col = -1; col < cols; col++) {
-                const offset = (row % 2) * spacing * 0.5;
-                const x = col * spacing + offset;
-                const y = row * rowH;
-                nodes.push({
-                    ox: x, oy: y, x, y,
-                    phase: Math.random() * Math.PI * 2,
-                    drift: Math.random() * 0.3 + 0.1,
-                    amp: Math.random() * 8 + 3,
-                    shape: Math.random() < 0.12 ? 'hex' : Math.random() < 0.2 ? 'diamond' : 'dot',
-                    size: Math.random() * 2.5 + 1.2,
-                    opacity: Math.random() * 0.35 + 0.08
-                });
-            }
+    function init() {
+        // Floating spec terms
+        floatingTerms = [];
+        const termCount = Math.min(45, Math.floor(w * h / 25000));
+        for (let i = 0; i < termCount; i++) {
+            floatingTerms.push(createTerm(true));
         }
 
-        // Floating geometric wireframes
-        hexCenters = [];
-        const numHex = 6;
-        for (let i = 0; i < numHex; i++) {
-            hexCenters.push({
+        // Glowing orbs — insights, each color from the app palette
+        orbs = [];
+        const orbColors = [
+            { r: 201, g: 168, b: 76 },   // gold
+            { r: 224, g: 197, b: 106 },  // gold light
+            { r: 168, g: 176, b: 184 },  // silver
+            { r: 76, g: 175, b: 106 },   // success green
+            { r: 230, g: 126, b: 34 },   // warning orange
+            { r: 231, g: 76, b: 60 },    // danger red
+            { r: 155, g: 89, b: 182 },   // purple
+            { r: 26, g: 188, b: 156 },   // teal
+            { r: 52, g: 152, b: 219 },   // blue
+            { r: 96, g: 165, b: 250 },   // light blue
+            { r: 243, g: 156, b: 18 },   // dark orange
+            { r: 142, g: 68, b: 173 },   // deep purple
+            { r: 39, g: 174, b: 96 },    // green
+        ];
+        const orbCount = Math.min(30, Math.floor(w * h / 40000));
+        for (let i = 0; i < orbCount; i++) {
+            const c = orbColors[Math.floor(Math.random() * orbColors.length)];
+            orbs.push({
                 x: Math.random() * w,
                 y: Math.random() * h,
-                radius: Math.random() * 60 + 40,
-                rotation: Math.random() * Math.PI * 2,
-                rotSpeed: (Math.random() - 0.5) * 0.003,
-                sides: Math.random() < 0.4 ? 6 : Math.random() < 0.5 ? 3 : 4,
-                opacity: Math.random() * 0.12 + 0.04,
-                driftX: (Math.random() - 0.5) * 0.15,
-                driftY: (Math.random() - 0.5) * 0.1
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.2,
+                radius: Math.random() * 3 + 1.5,
+                color: c,
+                opacity: Math.random() * 0.6 + 0.2,
+                phase: Math.random() * Math.PI * 2,
+                pulseSpeed: Math.random() * 0.015 + 0.005,
+                depth: Math.random()  // parallax depth
+            });
+        }
+
+        // Background star field for depth
+        stars = [];
+        for (let i = 0; i < 80; i++) {
+            stars.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                size: Math.random() * 1.2 + 0.3,
+                opacity: Math.random() * 0.3 + 0.05,
+                phase: Math.random() * Math.PI * 2,
+                twinkle: Math.random() * 0.02 + 0.008
             });
         }
     }
 
-    function drawShape(x, y, shape, size, alpha) {
-        ctx.beginPath();
-        if (shape === 'hex') {
-            for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 3) * i - Math.PI / 6;
-                const sx = x + Math.cos(angle) * size * 3;
-                const sy = y + Math.sin(angle) * size * 3;
-                i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
-            }
-            ctx.closePath();
-            ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.7})`;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-            ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.15})`;
-            ctx.fill();
-        } else if (shape === 'diamond') {
-            const s = size * 2.5;
-            ctx.moveTo(x, y - s);
-            ctx.lineTo(x + s * 0.7, y);
-            ctx.lineTo(x, y + s);
-            ctx.lineTo(x - s * 0.7, y);
-            ctx.closePath();
-            ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.8})`;
-            ctx.lineWidth = 0.6;
-            ctx.stroke();
-            ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.1})`;
-            ctx.fill();
-        } else {
-            // Crisp dot — no blur
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+    const termColors = [
+        '201, 168, 76',   // gold
+        '224, 197, 106',  // gold light
+        '168, 176, 184',  // silver
+        '76, 175, 106',   // success green
+        '230, 126, 34',   // warning orange
+        '231, 76, 60',    // danger red
+        '155, 89, 182',   // purple
+        '26, 188, 156',   // teal
+        '52, 152, 219',   // blue
+        '96, 165, 250',   // light blue
+        '243, 156, 18',   // dark orange
+        '142, 68, 173',   // deep purple
+        '39, 174, 96',    // green
+    ];
+
+    function createTerm(initial) {
+        const term = specTerms[Math.floor(Math.random() * specTerms.length)];
+        const depth = Math.random();
+        const size = 11 + depth * 7;
+        const opacity = 0.04 + depth * 0.12;
+        const rgb = termColors[Math.floor(Math.random() * termColors.length)];
+        return {
+            text: term,
+            x: initial ? Math.random() * w : (Math.random() < 0.5 ? -200 : w + 200),
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.15,
+            size,
+            opacity,
+            rotation: (Math.random() - 0.5) * 0.4,
+            depth,
+            color: `rgba(${rgb}, ${opacity})`,
+            italic: Math.random() < 0.4
+        };
+    }
+
+    // Nebula-like depth layers
+    function drawNebula() {
+        const scrollY = window.scrollY;
+
+        // Deep color washes — subtle nebula clouds
+        const nebulae = [
+            { x: w * 0.15, y: h * 0.06, r: 500, color: '201, 168, 76', a: 0.035 },
+            { x: w * 0.85, y: h * 0.15, r: 400, color: '52, 152, 219', a: 0.02 },
+            { x: w * 0.5,  y: h * 0.28, r: 550, color: '155, 89, 182', a: 0.018 },
+            { x: w * 0.2,  y: h * 0.42, r: 450, color: '26, 188, 156', a: 0.018 },
+            { x: w * 0.75, y: h * 0.55, r: 500, color: '230, 126, 34', a: 0.02 },
+            { x: w * 0.4,  y: h * 0.7,  r: 480, color: '201, 168, 76', a: 0.025 },
+            { x: w * 0.85, y: h * 0.85, r: 400, color: '39, 174, 96', a: 0.018 },
+        ];
+
+        for (const n of nebulae) {
+            const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+            grad.addColorStop(0, `rgba(${n.color}, ${n.a})`);
+            grad.addColorStop(0.5, `rgba(${n.color}, ${n.a * 0.4})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
             ctx.fill();
         }
     }
 
-    function drawConnections() {
-        const connDist = 95;
-        const scrollY = window.scrollY;
-        for (let i = 0; i < nodes.length; i++) {
-            const ni = nodes[i];
-            // Only draw connections for visible nodes
-            const screenY = ni.y - scrollY * 0.3;
-            if (screenY < -100 || screenY > h + 100) continue;
-            for (let j = i + 1; j < nodes.length; j++) {
-                const nj = nodes[j];
-                const dx = ni.x - nj.x;
-                const dy = ni.y - nj.y;
+    function drawStars() {
+        for (const s of stars) {
+            const twinkle = Math.sin(s.phase) * 0.5 + 0.5;
+            const alpha = s.opacity * twinkle;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(220, 220, 240, ${alpha})`;
+            ctx.fill();
+        }
+    }
+
+    // Geometric connections between orbs — the intelligence network
+    function drawOrbConnections() {
+        const connDist = 300;
+        for (let i = 0; i < orbs.length; i++) {
+            for (let j = i + 1; j < orbs.length; j++) {
+                const a = orbs[i], b = orbs[j];
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < connDist && dist > 10) {
-                    const alpha = (1 - dist / connDist) * 0.08;
-                    // Mouse proximity boost
-                    let boost = 0;
-                    if (mouse.x > 0) {
-                        const mx = mouse.x;
-                        const my = mouse.y + scrollY * 0.7;
-                        const midX = (ni.x + nj.x) / 2;
-                        const midY = (ni.y + nj.y) / 2;
-                        const mDist = Math.sqrt((midX - mx) ** 2 + (midY - my) ** 2);
-                        if (mDist < 250) boost = (1 - mDist / 250) * 0.15;
-                    }
+                if (dist < connDist) {
+                    const alpha = (1 - dist / connDist) * 0.12;
+                    // Blend the two orb colors
+                    const cr = Math.round((a.color.r + b.color.r) / 2);
+                    const cg = Math.round((a.color.g + b.color.g) / 2);
+                    const cb = Math.round((a.color.b + b.color.b) / 2);
+
                     ctx.beginPath();
-                    ctx.moveTo(ni.x, ni.y);
-                    ctx.lineTo(nj.x, nj.y);
-                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha + boost})`;
-                    ctx.lineWidth = 0.5 + boost * 3;
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha})`;
+                    ctx.lineWidth = 0.8;
                     ctx.stroke();
+
+                    // Small diamond at midpoint for geometric texture
+                    if (dist < connDist * 0.6) {
+                        const mx = (a.x + b.x) / 2;
+                        const my = (a.y + b.y) / 2;
+                        const s = 2.5 * (1 - dist / connDist);
+                        ctx.beginPath();
+                        ctx.moveTo(mx, my - s);
+                        ctx.lineTo(mx + s, my);
+                        ctx.lineTo(mx, my + s);
+                        ctx.lineTo(mx - s, my);
+                        ctx.closePath();
+                        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha * 0.8})`;
+                        ctx.fill();
+                    }
                 }
             }
         }
     }
 
-    function drawWireframes() {
-        for (let hc of hexCenters) {
+    function drawOrbs() {
+        for (const o of orbs) {
+            const pulse = Math.sin(o.phase) * 0.3 + 0.7;
+            const alpha = o.opacity * pulse;
+            const r = o.radius * pulse;
+
+            // Glow halo
+            const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r * 6);
+            grad.addColorStop(0, `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.3})`);
+            grad.addColorStop(0.4, `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.08})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, r * 6, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Sharp bright center
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha})`;
+            ctx.fill();
+
+            // Tiny white core
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, r * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+            ctx.fill();
+        }
+    }
+
+    function drawTerms() {
+        for (const t of floatingTerms) {
             ctx.save();
-            ctx.translate(hc.x, hc.y);
-            ctx.rotate(hc.rotation);
-
-            // Outer wireframe
-            ctx.beginPath();
-            for (let i = 0; i < hc.sides; i++) {
-                const angle = (Math.PI * 2 / hc.sides) * i - Math.PI / 2;
-                const px = Math.cos(angle) * hc.radius;
-                const py = Math.sin(angle) * hc.radius;
-                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${hc.opacity})`;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-
-            // Inner wireframe (scaled down)
-            ctx.beginPath();
-            for (let i = 0; i < hc.sides; i++) {
-                const angle = (Math.PI * 2 / hc.sides) * i - Math.PI / 2 + Math.PI / hc.sides;
-                const px = Math.cos(angle) * hc.radius * 0.5;
-                const py = Math.sin(angle) * hc.radius * 0.5;
-                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.strokeStyle = `rgba(${silver.r}, ${silver.g}, ${silver.b}, ${hc.opacity * 0.6})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-
-            // Spokes connecting inner to outer
-            for (let i = 0; i < hc.sides; i++) {
-                const outerAngle = (Math.PI * 2 / hc.sides) * i - Math.PI / 2;
-                const innerAngle = (Math.PI * 2 / hc.sides) * i - Math.PI / 2 + Math.PI / hc.sides;
-                ctx.beginPath();
-                ctx.moveTo(Math.cos(outerAngle) * hc.radius, Math.sin(outerAngle) * hc.radius);
-                ctx.lineTo(Math.cos(innerAngle) * hc.radius * 0.5, Math.sin(innerAngle) * hc.radius * 0.5);
-                ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${hc.opacity * 0.4})`;
-                ctx.lineWidth = 0.4;
-                ctx.stroke();
-            }
-
+            ctx.translate(t.x, t.y);
+            ctx.rotate(t.rotation);
+            ctx.font = `${t.italic ? 'italic ' : ''}${t.size}px -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif`;
+            ctx.fillStyle = t.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(t.text, 0, 0);
             ctx.restore();
         }
     }
 
-    function drawMouseField() {
+    function drawMouseEffect() {
         if (mouse.x < 0) return;
         const mx = mouse.x;
         const my = mouse.y + window.scrollY * 0.7;
-        const radius = 220;
+        const radius = 300;
 
-        // Crisp hexagonal cursor field instead of blurry glow
-        ctx.save();
-        ctx.translate(mx, my);
-        ctx.rotate(time * 0.2);
+        // Soft glow around cursor — the user's presence
+        const grad = ctx.createRadialGradient(mx, my, 0, mx, my, radius);
+        grad.addColorStop(0, 'rgba(201, 168, 76, 0.07)');
+        grad.addColorStop(0.3, 'rgba(201, 168, 76, 0.025)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-            const angle = (Math.PI / 3) * i;
-            const px = Math.cos(angle) * 18;
-            const py = Math.sin(angle) * 18;
-            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.4)`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.restore();
+        ctx.arc(mx, my, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
 
-        // Connect to nearby nodes with sharp lines
-        for (let n of nodes) {
-            const dx = n.x - mx;
-            const dy = n.y - my;
+        // Connect cursor to nearby orbs — the user interacting with insights
+        const nearbyOrbs = [];
+        for (const o of orbs) {
+            const dx = o.x - mx;
+            const dy = o.y - my;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < radius) {
-                const alpha = (1 - dist / radius) * 0.25;
+                nearbyOrbs.push({ orb: o, dist });
+                const alpha = (1 - dist / radius);
+
+                // Connection line from cursor to orb
                 ctx.beginPath();
                 ctx.moveTo(mx, my);
-                ctx.lineTo(n.x, n.y);
-                ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
-                ctx.lineWidth = (1 - dist / radius) * 1.2;
+                ctx.lineTo(o.x, o.y);
+                const lineGrad = ctx.createLinearGradient(mx, my, o.x, o.y);
+                lineGrad.addColorStop(0, `rgba(201, 168, 76, ${alpha * 0.35})`);
+                lineGrad.addColorStop(1, `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.25})`);
+                ctx.strokeStyle = lineGrad;
+                ctx.lineWidth = alpha * 1.8;
                 ctx.stroke();
 
-                // Brighten the node
-                const boostedAlpha = n.opacity + alpha * 0.6;
-                drawShape(n.x, n.y, n.shape, n.size * 1.3, boostedAlpha);
+                // Brighten the orb
+                ctx.beginPath();
+                ctx.arc(o.x, o.y, o.radius * 3, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.3})`;
+                ctx.fill();
             }
         }
+
+        // Intensify connections between orbs near the cursor — insights cross-correlating
+        for (let i = 0; i < nearbyOrbs.length; i++) {
+            for (let j = i + 1; j < nearbyOrbs.length; j++) {
+                const a = nearbyOrbs[i].orb, b = nearbyOrbs[j].orb;
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 400) {
+                    const proximity = Math.min(nearbyOrbs[i].dist, nearbyOrbs[j].dist);
+                    const alpha = (1 - proximity / radius) * (1 - dist / 400) * 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(201, 168, 76, ${alpha})`;
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+
+                    // Brighter midpoint node
+                    const midX = (a.x + b.x) / 2;
+                    const midY = (a.y + b.y) / 2;
+                    const s = 3 * (1 - dist / 400);
+                    ctx.beginPath();
+                    ctx.moveTo(midX, midY - s);
+                    ctx.lineTo(midX + s, midY);
+                    ctx.lineTo(midX, midY + s);
+                    ctx.lineTo(midX - s, midY);
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(201, 168, 76, ${alpha})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Reveal nearby terms more strongly — the raw data becoming visible
+        for (const t of floatingTerms) {
+            const dx = t.x - mx;
+            const dy = t.y - my;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < radius * 0.7) {
+                const boost = (1 - dist / (radius * 0.7));
+                ctx.save();
+                ctx.translate(t.x, t.y);
+                ctx.rotate(t.rotation);
+                ctx.font = `${t.italic ? 'italic ' : ''}${t.size}px -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif`;
+                ctx.fillStyle = `rgba(201, 168, 76, ${boost * 0.3})`;
+                ctx.textAlign = 'center';
+                ctx.fillText(t.text, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        // Small cursor node — the user
+        ctx.beginPath();
+        ctx.arc(mx, my, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(201, 168, 76, 0.6)';
+        ctx.fill();
     }
 
     function update() {
         time += 0.016;
-        for (let n of nodes) {
-            n.x = n.ox + Math.sin(time * n.drift + n.phase) * n.amp;
-            n.y = n.oy + Math.cos(time * n.drift * 0.7 + n.phase) * n.amp * 0.6;
+
+        // Update stars
+        for (const s of stars) {
+            s.phase += s.twinkle;
         }
-        for (let hc of hexCenters) {
-            hc.rotation += hc.rotSpeed;
-            hc.x += hc.driftX;
-            hc.y += hc.driftY;
-            if (hc.x < -100) hc.x = w + 100;
-            if (hc.x > w + 100) hc.x = -100;
-            if (hc.y < -100) hc.y = h + 100;
-            if (hc.y > h + 100) hc.y = -100;
+
+        // Update orbs
+        for (const o of orbs) {
+            o.x += o.vx;
+            o.y += o.vy;
+            o.phase += o.pulseSpeed;
+            if (o.x < -50) o.x = w + 50;
+            if (o.x > w + 50) o.x = -50;
+            if (o.y < -50) o.y = h + 50;
+            if (o.y > h + 50) o.y = -50;
+
+            // Mouse repulsion
+            if (mouse.x > 0) {
+                const mx = mouse.x;
+                const my = mouse.y + window.scrollY * 0.7;
+                const dx = o.x - mx;
+                const dy = o.y - my;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 200 && dist > 0) {
+                    const force = (200 - dist) / 200 * 0.15;
+                    o.vx += (dx / dist) * force;
+                    o.vy += (dy / dist) * force;
+                }
+            }
+            o.vx *= 0.995;
+            o.vy *= 0.995;
+        }
+
+        // Update floating terms — slow drift
+        for (const t of floatingTerms) {
+            t.x += t.vx;
+            t.y += t.vy;
+            // Recycle offscreen terms
+            if (t.x < -300 || t.x > w + 300 || t.y < -100 || t.y > h + 100) {
+                Object.assign(t, createTerm(false));
+                // Reset to enter from an edge
+                if (Math.random() < 0.5) {
+                    t.x = Math.random() < 0.5 ? -200 : w + 200;
+                    t.y = Math.random() * h;
+                } else {
+                    t.x = Math.random() * w;
+                    t.y = Math.random() < 0.5 ? -50 : h + 50;
+                }
+            }
         }
     }
 
     function render() {
-        ctx.clearRect(0, 0, w, h);
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
         ctx.save();
         ctx.translate(0, -window.scrollY * 0.3);
-        drawConnections();
-        for (let n of nodes) drawShape(n.x, n.y, n.shape, n.size, n.opacity);
-        drawWireframes();
-        drawMouseField();
+        drawNebula();
+        drawStars();
+        drawTerms();
+        drawOrbConnections();
+        drawOrbs();
+        drawMouseEffect();
         ctx.restore();
         update();
         requestAnimationFrame(render);

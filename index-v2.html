@@ -51,8 +51,6 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
             z-index: 0;
             pointer-events: none;
         }
@@ -1370,45 +1368,73 @@
             <div class="screenshot-track">
                 <div class="screenshot-slide">
                     <div class="phone-frame">
-                        <img src="screenshots/setdna.png" alt="Set DNA — shaft weight and swingweight coherence" loading="lazy">
+                        <img src="screenshots/my-bag-home.png" alt="My Bag — 14-club configuration at a glance" loading="lazy">
                     </div>
-                    <p class="screenshot-caption">Set DNA</p>
-                    <p class="screenshot-finding">Found a 1.3-point swingweight seam at the 5-to-6 iron transition.</p>
+                    <p class="screenshot-caption">My Bag</p>
+                    <p class="screenshot-finding">14 clubs. Every spec recorded. One screen to see your whole setup.</p>
                 </div>
                 <div class="screenshot-slide">
                     <div class="phone-frame">
-                        <img src="screenshots/gapping.png" alt="Gapping Optimizer — distance gap analysis" loading="lazy">
+                        <img src="screenshots/club-inventory.png" alt="Club Inventory — Primary and Concept columns" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Club Inventory</p>
+                    <p class="screenshot-finding">Every club you own. Primary bag, concept builds, reserve &mdash; all tracked.</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/bag-intelligence.png" alt="Bag Intelligence — 94 score, cross-feature findings" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Bag Intelligence</p>
+                    <p class="screenshot-finding">One score. Every tool cross-correlated. Findings you can&rsquo;t get anywhere else.</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/set-coherence.png" alt="Set Coherence — INTENTIONAL label, set ladder" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Set Coherence</p>
+                    <p class="screenshot-finding">Your shaft ladder is intentional &mdash; or it isn&rsquo;t. Now you&rsquo;ll know which.</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/gapping-optimizer.png" alt="Gapping Optimizer — sigma-aware, fragile gap warning" loading="lazy">
                     </div>
                     <p class="screenshot-caption">Gapping Optimizer</p>
-                    <p class="screenshot-finding">Your 9-iron and gap wedge carry the same distance. Here&rsquo;s why.</p>
+                    <p class="screenshot-finding">Fragile gap detected. One bad swing and your 7-iron covers 8-iron distance.</p>
                 </div>
                 <div class="screenshot-slide">
                     <div class="phone-frame">
-                        <img src="screenshots/wedge.png" alt="Wedge Matrix — bounce and grind map" loading="lazy">
+                        <img src="screenshots/weight-ports-cg.png" alt="Weight Ports & CG — adjustable weight configuration" loading="lazy">
+                    </div>
+                    <p class="screenshot-caption">Weight Ports &amp; CG</p>
+                    <p class="screenshot-finding">Every port, every gram, every CG position. Logged and analyzed.</p>
+                </div>
+                <div class="screenshot-slide">
+                    <div class="phone-frame">
+                        <img src="screenshots/wedge-matrix.png" alt="Wedge Matrix — conditions toggle, grind labels" loading="lazy">
                     </div>
                     <p class="screenshot-caption">Wedge Matrix</p>
-                    <p class="screenshot-finding">A 2&deg; loft bend cost you 4&deg; of effective bounce. You never knew.</p>
+                    <p class="screenshot-finding">Bounce shifts with conditions. Your 56&deg; plays 4&deg; softer in wet turf.</p>
                 </div>
                 <div class="screenshot-slide">
                     <div class="phone-frame">
-                        <img src="screenshots/moi.png" alt="MOI Estimator — swingweight matching analysis" loading="lazy">
+                        <img src="screenshots/glove-analysis.png" alt="Glove Analysis — wear pattern diagnosis from photo" loading="lazy">
                     </div>
-                    <p class="screenshot-caption">MOI Estimator</p>
-                    <p class="screenshot-finding">Your irons feel different because they are. Per-club swingweight matching.</p>
+                    <p class="screenshot-caption">Glove Analysis</p>
+                    <p class="screenshot-finding">Your worn glove tells a story. Grip pressure, hand position, wear patterns decoded.</p>
                 </div>
                 <div class="screenshot-slide">
                     <div class="phone-frame">
-                        <img src="screenshots/yardage.png" alt="Yardage Ruler — distance coverage map" loading="lazy">
+                        <img src="screenshots/driver-detail.png" alt="Driver detail — full spec breakdown" loading="lazy">
                     </div>
-                    <p class="screenshot-caption">Yardage Ruler</p>
-                    <p class="screenshot-finding">15-yard desert between your 4-iron and hybrid. One club fixes it.</p>
+                    <p class="screenshot-caption">Club Detail</p>
+                    <p class="screenshot-finding">Every spec your fitter measures &mdash; and a dozen they don&rsquo;t. All in one view.</p>
                 </div>
                 <div class="screenshot-slide">
                     <div class="phone-frame">
-                        <img src="screenshots/intelligence.png" alt="Intelligence Hub — 20 fitting tools" loading="lazy">
+                        <img src="screenshots/factory-spec-audit.png" alt="Factory Spec Audit — provenance breakdown" loading="lazy">
                     </div>
-                    <p class="screenshot-caption">Intelligence Hub</p>
-                    <p class="screenshot-finding">20 tools running simultaneously. Every finding cross-correlated.</p>
+                    <p class="screenshot-caption">Factory Spec Audit</p>
+                    <p class="screenshot-finding">Is your club built to spec? Compare measured vs. factory. Most aren&rsquo;t.</p>
                 </div>
             </div>
         </div>
@@ -1819,156 +1845,435 @@ document.addEventListener('DOMContentLoaded', function() {
 (function() {
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
-    let w, h, particles;
-    const gold = { r: 201, g: 168, b: 76 };
-    const maxParticles = 120;
-    const connectionDist = 220;
+    let w, h, time = 0;
+    const dpr = window.devicePixelRatio || 1;
     let mouse = { x: -1000, y: -1000 };
 
+    // Spec terms that float like the equations on Centrifical
+    const specTerms = [
+        'SW = D2', 'CPM = 256', 'MOI = 2,750', 'Loft = 10.5\u00B0', 'Lie = 58\u00B0',
+        'Bounce = 12\u00B0', 'Spin = 2,430', 'Launch = 14.2\u00B0', 'Smash = 1.48',
+        'CG = 28mm', 'Shaft = 65g', 'Grip = 50g', 'Length = 45.5"', 'Face = 1.7\u00B0 open',
+        'Carry = 285', 'Total = 302', 'Ball Speed = 167', 'Club Speed = 113',
+        'Flex = 6.0', 'Torque = 3.2\u00B0', 'Kick = Mid', 'Tip Trim = 1.5"',
+        'Effective Loft = 12.8\u00B0', 'Attack = -1.2\u00B0', 'Path = 2.1\u00B0 in-out',
+        'D-Plane', 'Gear Effect', 'VCG = low', 'CT = 234 \u00B5s',
+        'Gap = 12 yds', 'Freq Match', '\u0394SW = 0.3', 'Bulge = 10"', 'Roll = 12"',
+        'AoA = -3.5\u00B0', 'Spin Axis = -2.1\u00B0', 'Spin Loft = 15.4\u00B0',
+        'Dynamic Loft = 13.8\u00B0', 'Closure Rate = 4.2\u00B0/s'
+    ];
+
+    let floatingTerms = [];
+    let orbs = [];
+    let stars = [];
+
     function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight * 3;
+        w = window.innerWidth;
+        h = window.innerHeight * 3;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        init();
     }
 
-    function createParticles() {
-        particles = [];
-        for (let i = 0; i < maxParticles; i++) {
-            particles.push({
+    function init() {
+        // Floating spec terms
+        floatingTerms = [];
+        const termCount = Math.min(45, Math.floor(w * h / 25000));
+        for (let i = 0; i < termCount; i++) {
+            floatingTerms.push(createTerm(true));
+        }
+
+        // Glowing orbs — insights, each color from the app palette
+        orbs = [];
+        const orbColors = [
+            { r: 201, g: 168, b: 76 },   // gold
+            { r: 224, g: 197, b: 106 },  // gold light
+            { r: 168, g: 176, b: 184 },  // silver
+            { r: 76, g: 175, b: 106 },   // success green
+            { r: 230, g: 126, b: 34 },   // warning orange
+            { r: 231, g: 76, b: 60 },    // danger red
+            { r: 155, g: 89, b: 182 },   // purple
+            { r: 26, g: 188, b: 156 },   // teal
+            { r: 52, g: 152, b: 219 },   // blue
+            { r: 96, g: 165, b: 250 },   // light blue
+            { r: 243, g: 156, b: 18 },   // dark orange
+            { r: 142, g: 68, b: 173 },   // deep purple
+            { r: 39, g: 174, b: 96 },    // green
+        ];
+        const orbCount = Math.min(30, Math.floor(w * h / 40000));
+        for (let i = 0; i < orbCount; i++) {
+            const c = orbColors[Math.floor(Math.random() * orbColors.length)];
+            orbs.push({
                 x: Math.random() * w,
                 y: Math.random() * h,
-                vx: (Math.random() - 0.5) * 0.6,
-                vy: (Math.random() - 0.5) * 0.4,
-                size: Math.random() * 2.5 + 0.8,
-                opacity: Math.random() * 0.5 + 0.1,
-                pulse: Math.random() * Math.PI * 2,
-                pulseSpeed: Math.random() * 0.01 + 0.005
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.2,
+                radius: Math.random() * 3 + 1.5,
+                color: c,
+                opacity: Math.random() * 0.6 + 0.2,
+                phase: Math.random() * Math.PI * 2,
+                pulseSpeed: Math.random() * 0.015 + 0.005,
+                depth: Math.random()  // parallax depth
+            });
+        }
+
+        // Background star field for depth
+        stars = [];
+        for (let i = 0; i < 80; i++) {
+            stars.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                size: Math.random() * 1.2 + 0.3,
+                opacity: Math.random() * 0.3 + 0.05,
+                phase: Math.random() * Math.PI * 2,
+                twinkle: Math.random() * 0.02 + 0.008
             });
         }
     }
 
-    function drawParticle(p) {
-        const pulse = Math.sin(p.pulse) * 0.15 + 0.85;
-        const alpha = p.opacity * pulse;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 3 * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.15})`;
-        ctx.fill();
+    const termColors = [
+        '201, 168, 76',   // gold
+        '224, 197, 106',  // gold light
+        '168, 176, 184',  // silver
+        '76, 175, 106',   // success green
+        '230, 126, 34',   // warning orange
+        '231, 76, 60',    // danger red
+        '155, 89, 182',   // purple
+        '26, 188, 156',   // teal
+        '52, 152, 219',   // blue
+        '96, 165, 250',   // light blue
+        '243, 156, 18',   // dark orange
+        '142, 68, 173',   // deep purple
+        '39, 174, 96',    // green
+    ];
+
+    function createTerm(initial) {
+        const term = specTerms[Math.floor(Math.random() * specTerms.length)];
+        const depth = Math.random();
+        const size = 11 + depth * 7;
+        const opacity = 0.04 + depth * 0.12;
+        const rgb = termColors[Math.floor(Math.random() * termColors.length)];
+        return {
+            text: term,
+            x: initial ? Math.random() * w : (Math.random() < 0.5 ? -200 : w + 200),
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.15,
+            size,
+            opacity,
+            rotation: (Math.random() - 0.5) * 0.4,
+            depth,
+            color: `rgba(${rgb}, ${opacity})`,
+            italic: Math.random() < 0.4
+        };
     }
 
-    function drawConnections() {
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
+    // Nebula-like depth layers
+    function drawNebula() {
+        const scrollY = window.scrollY;
+
+        // Deep color washes — subtle nebula clouds
+        const nebulae = [
+            { x: w * 0.15, y: h * 0.06, r: 500, color: '201, 168, 76', a: 0.035 },
+            { x: w * 0.85, y: h * 0.15, r: 400, color: '52, 152, 219', a: 0.02 },
+            { x: w * 0.5,  y: h * 0.28, r: 550, color: '155, 89, 182', a: 0.018 },
+            { x: w * 0.2,  y: h * 0.42, r: 450, color: '26, 188, 156', a: 0.018 },
+            { x: w * 0.75, y: h * 0.55, r: 500, color: '230, 126, 34', a: 0.02 },
+            { x: w * 0.4,  y: h * 0.7,  r: 480, color: '201, 168, 76', a: 0.025 },
+            { x: w * 0.85, y: h * 0.85, r: 400, color: '39, 174, 96', a: 0.018 },
+        ];
+
+        for (const n of nebulae) {
+            const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+            grad.addColorStop(0, `rgba(${n.color}, ${n.a})`);
+            grad.addColorStop(0.5, `rgba(${n.color}, ${n.a * 0.4})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+    }
+
+    function drawStars() {
+        for (const s of stars) {
+            const twinkle = Math.sin(s.phase) * 0.5 + 0.5;
+            const alpha = s.opacity * twinkle;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(220, 220, 240, ${alpha})`;
+            ctx.fill();
+        }
+    }
+
+    // Geometric connections between orbs — the intelligence network
+    function drawOrbConnections() {
+        const connDist = 300;
+        for (let i = 0; i < orbs.length; i++) {
+            for (let j = i + 1; j < orbs.length; j++) {
+                const a = orbs[i], b = orbs[j];
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < connectionDist) {
-                    const alpha = (1 - dist / connectionDist) * 0.15;
+                if (dist < connDist) {
+                    const alpha = (1 - dist / connDist) * 0.12;
+                    // Blend the two orb colors
+                    const cr = Math.round((a.color.r + b.color.r) / 2);
+                    const cg = Math.round((a.color.g + b.color.g) / 2);
+                    const cb = Math.round((a.color.b + b.color.b) / 2);
+
                     ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha})`;
                     ctx.lineWidth = 0.8;
                     ctx.stroke();
+
+                    // Small diamond at midpoint for geometric texture
+                    if (dist < connDist * 0.6) {
+                        const mx = (a.x + b.x) / 2;
+                        const my = (a.y + b.y) / 2;
+                        const s = 2.5 * (1 - dist / connDist);
+                        ctx.beginPath();
+                        ctx.moveTo(mx, my - s);
+                        ctx.lineTo(mx + s, my);
+                        ctx.lineTo(mx, my + s);
+                        ctx.lineTo(mx - s, my);
+                        ctx.closePath();
+                        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha * 0.8})`;
+                        ctx.fill();
+                    }
                 }
             }
         }
     }
 
-    function update() {
-        for (let p of particles) {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.pulse += p.pulseSpeed;
-            if (p.x < -20) p.x = w + 20;
-            if (p.x > w + 20) p.x = -20;
-            if (p.y < -20) p.y = h + 20;
-            if (p.y > h + 20) p.y = -20;
-            const mx = mouse.x;
-            const my = mouse.y + window.scrollY;
-            const dx = p.x - mx;
-            const dy = p.y - my;
+    function drawOrbs() {
+        for (const o of orbs) {
+            const pulse = Math.sin(o.phase) * 0.3 + 0.7;
+            const alpha = o.opacity * pulse;
+            const r = o.radius * pulse;
+
+            // Glow halo
+            const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r * 6);
+            grad.addColorStop(0, `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.3})`);
+            grad.addColorStop(0.4, `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.08})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, r * 6, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Sharp bright center
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha})`;
+            ctx.fill();
+
+            // Tiny white core
+            ctx.beginPath();
+            ctx.arc(o.x, o.y, r * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+            ctx.fill();
+        }
+    }
+
+    function drawTerms() {
+        for (const t of floatingTerms) {
+            ctx.save();
+            ctx.translate(t.x, t.y);
+            ctx.rotate(t.rotation);
+            ctx.font = `${t.italic ? 'italic ' : ''}${t.size}px -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif`;
+            ctx.fillStyle = t.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(t.text, 0, 0);
+            ctx.restore();
+        }
+    }
+
+    function drawMouseEffect() {
+        if (mouse.x < 0) return;
+        const mx = mouse.x;
+        const my = mouse.y + window.scrollY * 0.7;
+        const radius = 300;
+
+        // Soft glow around cursor — the user's presence
+        const grad = ctx.createRadialGradient(mx, my, 0, mx, my, radius);
+        grad.addColorStop(0, 'rgba(201, 168, 76, 0.07)');
+        grad.addColorStop(0.3, 'rgba(201, 168, 76, 0.025)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(mx, my, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Connect cursor to nearby orbs — the user interacting with insights
+        const nearbyOrbs = [];
+        for (const o of orbs) {
+            const dx = o.x - mx;
+            const dy = o.y - my;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 200 && dist > 0) {
-                const force = (200 - dist) / 200 * 0.3;
-                p.vx += (dx / dist) * force;
-                p.vy += (dy / dist) * force;
+            if (dist < radius) {
+                nearbyOrbs.push({ orb: o, dist });
+                const alpha = (1 - dist / radius);
+
+                // Connection line from cursor to orb
+                ctx.beginPath();
+                ctx.moveTo(mx, my);
+                ctx.lineTo(o.x, o.y);
+                const lineGrad = ctx.createLinearGradient(mx, my, o.x, o.y);
+                lineGrad.addColorStop(0, `rgba(201, 168, 76, ${alpha * 0.35})`);
+                lineGrad.addColorStop(1, `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.25})`);
+                ctx.strokeStyle = lineGrad;
+                ctx.lineWidth = alpha * 1.8;
+                ctx.stroke();
+
+                // Brighten the orb
+                ctx.beginPath();
+                ctx.arc(o.x, o.y, o.radius * 3, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${o.color.r}, ${o.color.g}, ${o.color.b}, ${alpha * 0.3})`;
+                ctx.fill();
             }
-            p.vx *= 0.99;
-            p.vy *= 0.99;
+        }
+
+        // Intensify connections between orbs near the cursor — insights cross-correlating
+        for (let i = 0; i < nearbyOrbs.length; i++) {
+            for (let j = i + 1; j < nearbyOrbs.length; j++) {
+                const a = nearbyOrbs[i].orb, b = nearbyOrbs[j].orb;
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 400) {
+                    const proximity = Math.min(nearbyOrbs[i].dist, nearbyOrbs[j].dist);
+                    const alpha = (1 - proximity / radius) * (1 - dist / 400) * 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(201, 168, 76, ${alpha})`;
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+
+                    // Brighter midpoint node
+                    const midX = (a.x + b.x) / 2;
+                    const midY = (a.y + b.y) / 2;
+                    const s = 3 * (1 - dist / 400);
+                    ctx.beginPath();
+                    ctx.moveTo(midX, midY - s);
+                    ctx.lineTo(midX + s, midY);
+                    ctx.lineTo(midX, midY + s);
+                    ctx.lineTo(midX - s, midY);
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(201, 168, 76, ${alpha})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Reveal nearby terms more strongly — the raw data becoming visible
+        for (const t of floatingTerms) {
+            const dx = t.x - mx;
+            const dy = t.y - my;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < radius * 0.7) {
+                const boost = (1 - dist / (radius * 0.7));
+                ctx.save();
+                ctx.translate(t.x, t.y);
+                ctx.rotate(t.rotation);
+                ctx.font = `${t.italic ? 'italic ' : ''}${t.size}px -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif`;
+                ctx.fillStyle = `rgba(201, 168, 76, ${boost * 0.3})`;
+                ctx.textAlign = 'center';
+                ctx.fillText(t.text, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        // Small cursor node — the user
+        ctx.beginPath();
+        ctx.arc(mx, my, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(201, 168, 76, 0.6)';
+        ctx.fill();
+    }
+
+    function update() {
+        time += 0.016;
+
+        // Update stars
+        for (const s of stars) {
+            s.phase += s.twinkle;
+        }
+
+        // Update orbs
+        for (const o of orbs) {
+            o.x += o.vx;
+            o.y += o.vy;
+            o.phase += o.pulseSpeed;
+            if (o.x < -50) o.x = w + 50;
+            if (o.x > w + 50) o.x = -50;
+            if (o.y < -50) o.y = h + 50;
+            if (o.y > h + 50) o.y = -50;
+
+            // Mouse repulsion
+            if (mouse.x > 0) {
+                const mx = mouse.x;
+                const my = mouse.y + window.scrollY * 0.7;
+                const dx = o.x - mx;
+                const dy = o.y - my;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 200 && dist > 0) {
+                    const force = (200 - dist) / 200 * 0.15;
+                    o.vx += (dx / dist) * force;
+                    o.vy += (dy / dist) * force;
+                }
+            }
+            o.vx *= 0.995;
+            o.vy *= 0.995;
+        }
+
+        // Update floating terms — slow drift
+        for (const t of floatingTerms) {
+            t.x += t.vx;
+            t.y += t.vy;
+            // Recycle offscreen terms
+            if (t.x < -300 || t.x > w + 300 || t.y < -100 || t.y > h + 100) {
+                Object.assign(t, createTerm(false));
+                // Reset to enter from an edge
+                if (Math.random() < 0.5) {
+                    t.x = Math.random() < 0.5 ? -200 : w + 200;
+                    t.y = Math.random() * h;
+                } else {
+                    t.x = Math.random() * w;
+                    t.y = Math.random() < 0.5 ? -50 : h + 50;
+                }
+            }
         }
     }
 
     function render() {
-        ctx.clearRect(0, 0, w, h);
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
         ctx.save();
         ctx.translate(0, -window.scrollY * 0.3);
-        drawConnections();
-        for (let p of particles) drawParticle(p);
-        drawOrb(w * 0.15, h * 0.08, 450, 0.06);
-        drawOrb(w * 0.85, h * 0.2, 380, 0.05);
-        drawOrb(w * 0.5, h * 0.45, 500, 0.04);
-        drawOrb(w * 0.2, h * 0.65, 350, 0.05);
-        drawOrb(w * 0.75, h * 0.8, 400, 0.04);
-        if (mouse.x > 0 && mouse.y > 0) {
-            const mx = mouse.x;
-            const my = mouse.y + window.scrollY * 0.7;
-            const mouseRadius = 200;
-            const cursorGlow = ctx.createRadialGradient(mx, my, 0, mx, my, mouseRadius);
-            cursorGlow.addColorStop(0, `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.08)`);
-            cursorGlow.addColorStop(0.5, `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.03)`);
-            cursorGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.beginPath();
-            ctx.arc(mx, my, mouseRadius, 0, Math.PI * 2);
-            ctx.fillStyle = cursorGlow;
-            ctx.fill();
-            for (let p of particles) {
-                const dx = p.x - mx;
-                const dy = p.y - my;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < mouseRadius) {
-                    const alpha = (1 - dist / mouseRadius) * 0.35;
-                    ctx.beginPath();
-                    ctx.moveTo(mx, my);
-                    ctx.lineTo(p.x, p.y);
-                    ctx.strokeStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`;
-                    ctx.lineWidth = (1 - dist / mouseRadius) * 1.5;
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha * 0.5})`;
-                    ctx.fill();
-                }
-            }
-            ctx.beginPath();
-            ctx.arc(mx, my, 3, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${gold.r}, ${gold.g}, ${gold.b}, 0.6)`;
-            ctx.fill();
-        }
+        drawNebula();
+        drawStars();
+        drawTerms();
+        drawOrbConnections();
+        drawOrbs();
+        drawMouseEffect();
         ctx.restore();
         update();
         requestAnimationFrame(render);
     }
 
-    function drawOrb(x, y, radius, alpha) {
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-        gradient.addColorStop(0, `rgba(${gold.r}, ${gold.g}, ${gold.b}, ${alpha})`);
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-    }
-
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', () => { resize(); });
     window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
     window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; });
 
     resize();
-    createParticles();
     render();
 })();
 </script>
